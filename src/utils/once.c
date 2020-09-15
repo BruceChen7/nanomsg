@@ -43,6 +43,7 @@ void nn_do_once (nn_once_t *once, void (*func)(void))
 
 void nn_do_once (nn_once_t *once, void (*func)(void))
 {
+    //用来执行一次初始化调用
     pthread_once (&once->once, func);
 }
 

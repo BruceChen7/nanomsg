@@ -36,6 +36,7 @@ void nn_sleep (int milliseconds)
 
 #include <time.h>
 
+// 睡眠多少毫秒
 void nn_sleep (int milliseconds)
 {
     int rc;

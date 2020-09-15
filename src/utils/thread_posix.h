@@ -22,9 +22,13 @@
 
 #include <pthread.h>
 
+// 线程的标识
 struct nn_thread
 {
     nn_thread_routine *routine;
+    // 参数
     void *arg;
+    // 线程id,
+    // 注意线程tid类型为tid
     pthread_t handle;
 };

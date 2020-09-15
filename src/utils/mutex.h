@@ -37,6 +37,7 @@ struct nn_mutex {
     DWORD owner;
     int debug;
 #else
+    // 直接使用mutex
     pthread_mutex_t mutex;
 #endif
 };

@@ -29,6 +29,7 @@
 
 void nn_timerset_init (struct nn_timerset *self)
 {
+    // 初始化定时器
     nn_list_init (&self->timeouts);
 }
 

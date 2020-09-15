@@ -36,13 +36,14 @@ static void *nn_thread_main_routine (void *arg)
     return NULL;
 }
 
+// 初始化线程
 void nn_thread_init (struct nn_thread *self,
     nn_thread_routine *routine, void *arg)
 {
     int rc;
     sigset_t new_sigmask;
     sigset_t old_sigmask;
- 
+
     /*  No signals should be processed by this thread. The library doesn't
         use signals and thus all the signals should be delivered to application
         threads, not to worker threads. */
@@ -51,6 +52,7 @@ void nn_thread_init (struct nn_thread *self,
     rc = pthread_sigmask (SIG_BLOCK, &new_sigmask, &old_sigmask);
     errnum_assert (rc == 0, rc);
 
+    // 初始化rotinue
     self->routine = routine;
     self->arg = arg;
     rc = pthread_create (&self->handle, NULL, nn_thread_main_routine,
@@ -58,6 +60,7 @@ void nn_thread_init (struct nn_thread *self,
     errnum_assert (rc == 0, rc);
 
     /*  Restore signal set to what it was before. */
+    // 恢复创建线程的信号设置
     rc = pthread_sigmask (SIG_SETMASK, &old_sigmask, NULL);
     errnum_assert (rc == 0, rc);
 }

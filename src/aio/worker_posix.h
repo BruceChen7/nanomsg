@@ -55,6 +55,7 @@ struct nn_worker {
     struct nn_efd efd;
     struct nn_poller poller;
     struct nn_poller_hndl efd_hndl;
+    // 定时器
     struct nn_timerset timerset;
     struct nn_thread thread;
 };

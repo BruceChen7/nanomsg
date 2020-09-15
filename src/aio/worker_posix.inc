@@ -98,6 +98,7 @@ void nn_worker_task_term (struct nn_worker_task *self)
     nn_queue_item_term (&self->item);
 }
 
+// 工作线程初始化
 int nn_worker_init (struct nn_worker *self)
 {
     int rc;
@@ -106,12 +107,16 @@ int nn_worker_init (struct nn_worker *self)
     if (rc < 0)
         return rc;
 
+    // 初始化锁
     nn_mutex_init (&self->sync);
+    // 初始任务队列
     nn_queue_init (&self->tasks);
     nn_queue_item_init (&self->stop);
+    // 初始化poller
     nn_poller_init (&self->poller);
     nn_poller_add (&self->poller, nn_efd_getfd (&self->efd), &self->efd_hndl);
     nn_poller_set_in (&self->poller, &self->efd_hndl);
+    // 初始化定时器
     nn_timerset_init (&self->timerset);
     nn_thread_init (&self->thread, nn_worker_routine, self);
 

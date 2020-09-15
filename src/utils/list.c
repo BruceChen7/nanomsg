@@ -26,6 +26,7 @@
 #include "err.h"
 #include "attr.h"
 
+// 创建list列表
 void nn_list_init (struct nn_list *self)
 {
     self->first = NULL;

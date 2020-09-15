@@ -28,11 +28,13 @@
 
 #define NN_POLLER_MAX_EVENTS 32
 
+// 事件信息
 struct nn_poller_hndl {
     int fd;
     uint32_t events;
 };
 
+// linux下的poller
 struct nn_poller {
 
     /*  Current pollset. */

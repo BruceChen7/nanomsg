@@ -152,6 +152,7 @@ struct nn_global {
     struct nn_sock **socks;
 
     /*  Stack of unused file descriptors. */
+    // 分配到sock数组的后面
     uint16_t *unused;
 
     /*  Number of actual open sockets in the socket table. */
@@ -174,6 +175,7 @@ struct nn_global {
 };
 
 /*  Singleton object containing the global state of the library. */
+// library全局的变量
 static struct nn_global self;
 static nn_once_t once = NN_ONCE_INITIALIZER;
 
@@ -217,6 +219,7 @@ static void nn_global_init (void)
     const struct nn_transport *tp;
 
     /*  Check whether the library was already initialised. If so, do nothing. */
+    // 如果已经初始化了，直接返回
     if (self.socks)
         return;
 
@@ -235,9 +238,11 @@ static void nn_global_init (void)
     nn_random_seed ();
 
     /*  Allocate the global table of SP sockets. */
+    // 最多分配 512SP sockets
     self.socks = nn_alloc ((sizeof (struct nn_sock*) * NN_MAX_SOCKETS) +
         (sizeof (uint16_t) * NN_MAX_SOCKETS), "socket table");
     alloc_assert (self.socks);
+    // 初始化为NULL
     for (i = 0; i != NN_MAX_SOCKETS; ++i)
         self.socks [i] = NULL;
     self.nsocks = 0;
@@ -252,6 +257,7 @@ static void nn_global_init (void)
     self.unused = (uint16_t*) (self.socks + NN_MAX_SOCKETS);
     alloc_assert (self.unused);
     for (i = 0; i != NN_MAX_SOCKETS; ++i)
+        // 初始化未使用的下表
         self.unused [i] = NN_MAX_SOCKETS - i - 1;
 
     /*  Initialize transports if needed. */
@@ -261,6 +267,7 @@ static void nn_global_init (void)
         }
     }
 
+    // 初始化工作线程
     /*  Start the worker threads. */
     nn_pool_init (&self.pool);
 }
@@ -328,6 +335,7 @@ void nn_term (void)
     nn_mutex_unlock (&self.lock);
 }
 
+// 初始化全局锁和条件变量
 static void nn_lib_init(void)
 {
     /*  This function is executed once to initialize global locks. */
@@ -473,6 +481,7 @@ int nn_socket (int domain, int protocol)
 {
     int rc;
 
+    // 初始化一次，初始化条件变量和锁
     nn_do_once (&once, nn_lib_init);
 
     nn_mutex_lock (&self.lock);
@@ -487,6 +496,7 @@ int nn_socket (int domain, int protocol)
     /*  Make sure that global state is initialised. */
     nn_global_init ();
 
+    // 创建全局的socket
     rc = nn_global_create_socket (domain, protocol);
 
     if (rc < 0) {
@@ -639,6 +649,7 @@ int nn_connect (int s, const char *addr)
     int rc;
     struct nn_sock *sock;
 
+    // 获取全局的socket地址
     rc = nn_global_hold_socket (&sock, s);
     if (nn_slow (rc < 0)) {
         errno = -rc;
@@ -1128,6 +1139,7 @@ int nn_global_hold_socket_locked(struct nn_sock **sockp, int s)
     if (nn_slow (s < 0 || s >= NN_MAX_SOCKETS || self.socks == NULL))
         return -EBADF;
 
+    // 返回对应的socket
     sock = self.socks[s];
     if (nn_slow (sock == NULL)) {
         return -EBADF;

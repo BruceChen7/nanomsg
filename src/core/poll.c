@@ -42,6 +42,7 @@ int nn_poll (struct nn_pollfd *fds, int nfds, int timeout)
     /*  Fill in the fdset, as appropriate. */
     FD_ZERO (&fdset);
     for (i = 0; i != nfds; ++i) {
+        // 读事件
         if (fds [i].events & NN_POLLIN) {
             sz = sizeof (fd);
             rc = nn_getsockopt (fds [i].fd, NN_SOL_SOCKET, NN_RCVFD, &fd, &sz);
@@ -51,6 +52,7 @@ int nn_poll (struct nn_pollfd *fds, int nfds, int timeout)
             nn_assert (sz == sizeof (fd));
             FD_SET (fd, &fdset);
         }
+        // 写事件
         if (fds [i].events & NN_POLLOUT) {
             sz = sizeof (fd);
             rc = nn_getsockopt (fds [i].fd, NN_SOL_SOCKET, NN_SNDFD, &fd, &sz);
@@ -136,6 +138,7 @@ int nn_poll (struct nn_pollfd *fds, int nfds, int timeout)
     struct pollfd *pfd;
 
     /*  Construct a pollset to be used with OS-level 'poll' function. */
+    // 创建发生的事件
     pfd = nn_alloc (sizeof (struct pollfd) * nfds * 2, "pollset");
     alloc_assert (pfd);
     pos = 0;
@@ -149,6 +152,7 @@ int nn_poll (struct nn_pollfd *fds, int nfds, int timeout)
             }
             nn_assert (sz == sizeof (fd));
             pfd [pos].fd = fd;
+            // 设置pollin事件
             pfd [pos].events = POLLIN;
             ++pos;
         }
@@ -164,7 +168,7 @@ int nn_poll (struct nn_pollfd *fds, int nfds, int timeout)
             pfd [pos].events = POLLIN;
             ++pos;
         }
-    }    
+    }
 
     /*  Do the polling itself. */
     rc = poll (pfd, pos, timeout);
@@ -195,6 +199,7 @@ int nn_poll (struct nn_pollfd *fds, int nfds, int timeout)
     }
 
     nn_free (pfd);
+    // 返回发生的事件数
     return res;
 }
 
