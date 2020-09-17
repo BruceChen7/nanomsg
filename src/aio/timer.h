@@ -31,6 +31,8 @@
 
 struct nn_timer {
     struct nn_fsm fsm;
+    // 可能取值 NN_TIMER_STATE_IDLE
+    // 
     int state;
     struct nn_worker_task start_task;
     struct nn_worker_task stop_task;

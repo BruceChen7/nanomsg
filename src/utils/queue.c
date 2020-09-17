@@ -48,7 +48,9 @@ void nn_queue_push (struct nn_queue *self, struct nn_queue_item *item)
 
     item->next = NULL;
     if (!self->head)
+        // 插入到对头
         self->head = item;
+    // 插入到队列尾巴
     if (self->tail)
         self->tail->next = item;
     self->tail = item;

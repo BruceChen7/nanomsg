@@ -112,6 +112,7 @@ void nn_ep_stopped (struct nn_ep *self)
 
 struct nn_ctx *nn_ep_getctx (struct nn_ep *self)
 {
+    // 获取sock上下文
     return nn_sock_getctx (self->sock);
 }
 

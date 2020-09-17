@@ -31,12 +31,14 @@ struct nn_ctx;
 struct nn_fsm;
 struct nn_worker;
 
+// 状态机事件
 struct nn_fsm_event {
-    struct nn_fsm *fsm;
-    int src;
-    void *srcptr;
-    int type;
-    struct nn_queue_item item;
+    struct nn_fsm *fsm;  // 事件所属状态机
+    int src;  // 事件发起这
+    void *srcptr;  // 事件发起者附属上下文
+    int type;  // 动作action,
+    // 事件是通过链表拉起来的
+    struct nn_queue_item item;  //事件会加入到nn_ctx的events队列中
 };
 
 void nn_fsm_event_init (struct nn_fsm_event *self);
@@ -64,12 +66,15 @@ struct nn_fsm_owner {
 };
 
 struct nn_fsm {
+    // 执行状态转移的回调函数
     nn_fsm_fn fn;
+    // 
     nn_fsm_fn shutdown_fn;
     int state;
     int src;
     void *srcptr;
     struct nn_fsm *owner;
+    // 状态机中的上下文
     struct nn_ctx *ctx;
     struct nn_fsm_event stopped;
 };

@@ -74,6 +74,7 @@ void nn_worker_reset_out (struct nn_worker *self, struct nn_worker_fd *fd)
     nn_poller_reset_out (&self->poller, &fd->hndl);
 }
 
+// 添加超时事件
 void nn_worker_add_timer (struct nn_worker *self, int timeout,
     struct nn_worker_timer *timer)
 {
@@ -114,7 +115,9 @@ int nn_worker_init (struct nn_worker *self)
     nn_queue_item_init (&self->stop);
     // 初始化poller
     nn_poller_init (&self->poller);
+    // 添加event fd
     nn_poller_add (&self->poller, nn_efd_getfd (&self->efd), &self->efd_hndl);
+    // 设置event fd 的读事件
     nn_poller_set_in (&self->poller, &self->efd_hndl);
     // 初始化定时器
     nn_timerset_init (&self->timerset);
@@ -123,6 +126,7 @@ int nn_worker_init (struct nn_worker *self)
     return 0;
 }
 
+// work线程的终结
 void nn_worker_term (struct nn_worker *self)
 {
     /*  Ask worker thread to terminate. */
@@ -178,18 +182,23 @@ static void nn_worker_routine (void *arg)
     while (1) {
 
         /*  Wait for new events and/or timeouts. */
+        // 等待超时时间
         rc = nn_poller_wait (&self->poller,
             nn_timerset_timeout (&self->timerset));
         errnum_assert (rc == 0, -rc);
 
         /*  Process all expired timers. */
         while (1) {
+            // 获取超时时间的节点
             rc = nn_timerset_event (&self->timerset, &thndl);
             if (rc == -EAGAIN)
                 break;
             errnum_assert (rc == 0, -rc);
+            // hndl是成员结构体的名字
             timer = nn_cont (thndl, struct nn_worker_timer, hndl);
+            // 锁住上下文
             nn_ctx_enter (timer->owner->ctx);
+            // 直接执行状态
             nn_fsm_feed (timer->owner, -1, NN_WORKER_TIMER_TIMEOUT, timer);
             nn_ctx_leave (timer->owner->ctx);
         }
@@ -212,6 +221,7 @@ static void nn_worker_routine (void *arg)
                     new tasks can be posted from within task handlers. */
                 nn_mutex_lock (&self->sync);
                 nn_efd_unsignal (&self->efd);
+                // 拷贝task
                 memcpy (&tasks, &self->tasks, sizeof (tasks));
                 nn_queue_init (&self->tasks);
                 nn_mutex_unlock (&self->sync);
@@ -237,6 +247,7 @@ static void nn_worker_routine (void *arg)
 
                     /*  It's a user-defined task. Notify the user that it has
                         arrived in the worker thread. */
+                    // 获取相应的task
                     task = nn_cont (item, struct nn_worker_task, item);
                     nn_ctx_enter (task->owner->ctx);
                     nn_fsm_feed (task->owner, task->src,

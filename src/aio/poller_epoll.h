@@ -38,6 +38,7 @@ struct nn_poller_hndl {
 struct nn_poller {
 
     /*  Current pollset. */
+    // epoll fd
     int ep;
 
     /*  Number of events being processed at the moment. */

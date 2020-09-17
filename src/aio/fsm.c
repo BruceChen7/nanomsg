@@ -35,10 +35,12 @@
 
 void nn_fsm_event_init (struct nn_fsm_event *self)
 {
+    // 所属的状态机为空
     self->fsm = NULL;
     self->src = -1;
     self->srcptr = NULL;
     self->type = -1;
+    // 初始化事件链表
     nn_queue_item_init (&self->item);
 }
 
@@ -80,6 +82,7 @@ void nn_fsm_event_process (struct nn_fsm_event *self)
 void nn_fsm_feed (struct nn_fsm *self, int src, int type, void *srcptr)
 {
     if (nn_slow (self->state != NN_FSM_STATE_STOPPING)) {
+        // 调用相关的回调
         self->fn (self, src, type, srcptr);
     } else {
         self->shutdown_fn (self, src, type, srcptr);
@@ -91,6 +94,7 @@ void nn_fsm_init_root (struct nn_fsm *self, nn_fsm_fn fn,
 {
     self->fn = fn;
     self->shutdown_fn = shutdown_fn;
+    // 初始状态
     self->state = NN_FSM_STATE_IDLE;
     self->src = -1;
     self->srcptr = NULL;
@@ -120,8 +124,11 @@ void nn_fsm_term (struct nn_fsm *self)
 
 void nn_fsm_start (struct nn_fsm *self)
 {
+    // 开始必须是从idle状态进行状态转移
     nn_assert (nn_fsm_isidle (self));
+    // 执行相关的回调
     self->fn (self, NN_FSM_ACTION, NN_FSM_START, NULL);
+    // 设置状态机开始激活了
     self->state = NN_FSM_STATE_ACTIVE;
 }
 

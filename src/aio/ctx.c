@@ -57,9 +57,11 @@ void nn_ctx_leave (struct nn_ctx *self)
     /*  Process any queued events before leaving the context. */
     while (1) {
         item = nn_queue_pop (&self->events);
+        // 获取事件
         event = nn_cont (item, struct nn_fsm_event, item);
         if (!event)
             break;
+        // 处理事件
         nn_fsm_event_process (event);
     }
 

@@ -38,6 +38,7 @@ void nn_timerset_term (struct nn_timerset *self)
     nn_list_term (&self->timeouts);
 }
 
+// 按超时时间顺序的插入
 int nn_timerset_add (struct nn_timerset *self, int timeout,
     struct nn_timerset_hndl *hndl)
 {
@@ -46,6 +47,7 @@ int nn_timerset_add (struct nn_timerset *self, int timeout,
     int first;
 
     /*  Compute the instant when the timeout will be due. */
+    // 计算超时时间
     hndl->timeout = nn_clock_ms()  + timeout;
 
     /*  Insert it into the ordered list of timeouts. */
@@ -86,6 +88,7 @@ int nn_timerset_timeout (struct nn_timerset *self)
     if (nn_fast (nn_list_empty (&self->timeouts)))
         return -1;
 
+    // 返回首个节点的超时时间
     timeout = (int) (nn_cont (nn_list_begin (&self->timeouts),
         struct nn_timerset_hndl, list)->timeout - nn_clock_ms());
     return timeout < 0 ? 0 : timeout;
@@ -96,12 +99,15 @@ int nn_timerset_event (struct nn_timerset *self, struct nn_timerset_hndl **hndl)
     struct nn_timerset_hndl *first;
 
     /*  If there's no timeout, there's no event to report. */
+    // 如果没有定时器时间
     if (nn_fast (nn_list_empty (&self->timeouts)))
         return -EAGAIN;
 
     /*  If no timeout have expired yet, there's no event to return. */
     first = nn_cont (nn_list_begin (&self->timeouts),
         struct nn_timerset_hndl, list);
+
+    // 已经超时
     if (first->timeout > nn_clock_ms())
         return -EAGAIN;
 

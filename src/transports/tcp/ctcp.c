@@ -64,6 +64,7 @@
 #define NN_CTCP_STATE_STOPPING 11
 
 #define NN_CTCP_SRC_USOCK 1
+// 几个状态
 #define NN_CTCP_SRC_RECONNECT_TIMER 2
 #define NN_CTCP_SRC_DNS 3
 #define NN_CTCP_SRC_STCP 4
@@ -73,7 +74,7 @@ struct nn_ctcp {
     /*  The state machine. */
     struct nn_fsm fsm;
     int state;
-
+    // 对端
     struct nn_ep *ep;
 
     /*  The underlying TCP socket. */
@@ -128,11 +129,13 @@ int nn_ctcp_create (struct nn_ep *ep)
     size_t sz;
 
     /*  Allocate the new endpoint object. */
+    // 创建结构体
     self = nn_alloc (sizeof (struct nn_ctcp), "ctcp");
     alloc_assert (self);
 
     /*  Initalise the endpoint. */
     self->ep = ep;
+    // 设置对端选项
     nn_ep_tran_setup (ep, &nn_ctcp_ep_ops, self);
 
     /*  Check whether IPv6 is to be used. */
@@ -178,6 +181,7 @@ int nn_ctcp_create (struct nn_ep *ep)
     }
 
     /*  Initialise the structure. */
+    // 初始化状态机
     nn_fsm_init_root (&self->fsm, nn_ctcp_handler, nn_ctcp_shutdown,
         nn_ep_getctx (ep));
     self->state = NN_CTCP_STATE_IDLE;

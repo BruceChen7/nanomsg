@@ -25,6 +25,7 @@
 void nn_backoff_init (struct nn_backoff *self, int src, int minivl, int maxivl,
     struct nn_fsm *owner)
 {
+    // 初始定时器
     nn_timer_init (&self->timer, src, owner);
     self->minivl = minivl;
     self->maxivl = maxivl;

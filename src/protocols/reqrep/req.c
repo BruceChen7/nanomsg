@@ -340,6 +340,7 @@ void nn_req_shutdown (struct nn_fsm *self, int src, int type,
     nn_fsm_bad_state(req->state, src, type);
 }
 
+// 状态转移函数
 void nn_req_handler (struct nn_fsm *self, int src, int type,
     NN_UNUSED void *srcptr)
 {
@@ -623,6 +624,7 @@ void nn_req_action_send (struct nn_req *self, int allow_delay)
         in case the request gets lost somewhere further out
         in the topology. */
     if (nn_fast (rc == 0)) {
+        // 开始状态转移
         nn_timer_start (&self->task.timer, self->resend_ivl);
         nn_assert (to);
         self->task.sent_to = to;

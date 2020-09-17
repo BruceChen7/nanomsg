@@ -34,6 +34,7 @@
 #define NN_TIMER_STATE_ACTIVE 2
 #define NN_TIMER_STATE_STOPPING 3
 
+// 已经开始了任务
 #define NN_TIMER_SRC_START_TASK 1
 #define NN_TIMER_SRC_STOP_TASK 2
 
@@ -45,13 +46,20 @@ static void nn_timer_shutdown (struct nn_fsm *self, int src, int type,
 
 void nn_timer_init (struct nn_timer *self, int src, struct nn_fsm *owner)
 {
+    // 初始化状态机， nn_timer_handler, 是一个处理状态的回调
+    // srcptr指向了自己
+    // src为初始状态
     nn_fsm_init (&self->fsm, nn_timer_handler, nn_timer_shutdown,
         src, self, owner);
+    // 设置为idle
     self->state = NN_TIMER_STATE_IDLE;
+    // 初始化开始任务
     nn_worker_task_init (&self->start_task, NN_TIMER_SRC_START_TASK,
         &self->fsm);
+    // 初始化结束任务
     nn_worker_task_init (&self->stop_task, NN_TIMER_SRC_STOP_TASK, &self->fsm);
     nn_worker_timer_init (&self->wtimer, &self->fsm);
+    // 初始化done事件
     nn_fsm_event_init (&self->done);
     self->worker = nn_fsm_choose_worker (&self->fsm);
     self->timeout = -1;
@@ -59,6 +67,7 @@ void nn_timer_init (struct nn_timer *self, int src, struct nn_fsm *owner)
 
 void nn_timer_term (struct nn_timer *self)
 {
+    // 确保该timer处于idle状态
     nn_assert_state (self, NN_TIMER_STATE_IDLE);
 
     nn_fsm_event_term (&self->done);
@@ -79,6 +88,7 @@ void nn_timer_start (struct nn_timer *self, int timeout)
     nn_assert (timeout >= 0);
 
     self->timeout = timeout;
+    // 开始状态机
     nn_fsm_start (&self->fsm);
 }
 
@@ -116,7 +126,7 @@ static void nn_timer_handler (struct nn_fsm *self, int src, int type,
     void *srcptr)
 {
     struct nn_timer *timer;
-
+    // 获取所在的timer
     timer = nn_cont (self, struct nn_timer, fsm);
 
     switch (timer->state) {
@@ -125,13 +135,17 @@ static void nn_timer_handler (struct nn_fsm *self, int src, int type,
 /*  IDLE state.                                                               */
 /******************************************************************************/
     case NN_TIMER_STATE_IDLE:
+        // src为事件氦气
+        // type 为 NN_FSM_START动作
         switch (src) {
         case NN_FSM_ACTION:
             switch (type) {
             case NN_FSM_START:
 
                 /*  Send start event to the worker thread. */
+                // fsm处于active状态
                 timer->state = NN_TIMER_STATE_ACTIVE;
+                // 执行任务
                 nn_worker_execute (timer->worker, &timer->start_task);
                 return;
             default:
@@ -144,10 +158,14 @@ static void nn_timer_handler (struct nn_fsm *self, int src, int type,
 /******************************************************************************/
 /*  ACTIVE state.                                                             */
 /******************************************************************************/
+    // fsm 处于active状态
     case NN_TIMER_STATE_ACTIVE:
+        // timer本身已经运行过
         if (src == NN_TIMER_SRC_START_TASK) {
+            // 下一次的动作是执行
             nn_assert (type == NN_WORKER_TASK_EXECUTE);
             nn_assert (timer->timeout >= 0);
+            //
             nn_worker_add_timer (timer->worker, timer->timeout,
                 &timer->wtimer);
             timer->timeout = -1;
@@ -159,6 +177,7 @@ static void nn_timer_handler (struct nn_fsm *self, int src, int type,
 
                 /*  Notify the user about the timeout. */
                 nn_assert (timer->timeout == -1);
+                // 触发超时，且完成事件
                 nn_fsm_raise (&timer->fsm, &timer->done, NN_TIMER_TIMEOUT);
                 return;
 

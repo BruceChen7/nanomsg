@@ -116,7 +116,7 @@ int nn_rep_recv (struct nn_sockbase *self, struct nn_msg *msg)
 {
     int rc;
     struct nn_rep *rep;
-
+    // 获取rep
     rep = nn_cont (self, struct nn_rep, xrep.sockbase);
 
     /*  If a request is already being processed, cancel it. */

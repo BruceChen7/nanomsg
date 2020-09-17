@@ -37,6 +37,7 @@ typedef void (*nn_ctx_onleave) (struct nn_ctx *self);
 struct nn_ctx {
     struct nn_mutex sync;
     struct nn_pool *pool;
+    // 事件咧白哦
     struct nn_queue events;
     struct nn_queue eventsto;
     nn_ctx_onleave onleave;
